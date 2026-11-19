@@ -8,7 +8,7 @@
   const SEED = window.SHOWMIX_SEED;
   const useSupabase = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && window.supabase);
   const BUCKET = "photos";
-  const LS_KEY = "showmix-demo-v3";
+  const LS_KEY = "showmix-demo-v4";
   const LS_SESSION = "showmix-demo-session";
 
   const uid = () => {
@@ -76,7 +76,7 @@
       const p = d.photographers.find((x) => x.id === photographerId);
       memSession = role === "admin"
         ? { email: "admin@showmix.fr", role: "admin" }
-        : { email: p.ownerEmail, role: "photographer", photographerId: p.id };
+        : { email: (p.ownerEmail || "").split(",")[0].trim(), role: "photographer", photographerId: p.id };
       lsSet(LS_SESSION, JSON.stringify(memSession));
       return memSession;
     },
@@ -85,7 +85,7 @@
     async createPhotographer(fields) {
       const d = demoLoad(); let id = slug(fields.name); while (d.photographers.some((p) => p.id === id)) id += "-2";
       d.photographers.push({ id, name: fields.name, handle: fields.handle || "", instagram: fields.instagram || "", bio: fields.bio || "",
-        ownerEmail: fields.ownerEmail || "", sort: d.photographers.length + 1, photos: [] });
+        ownerEmail: fields.ownerEmail || "", contactEmail: fields.contactEmail || "", sort: d.photographers.length + 1, photos: [] });
       demoSave(); return id;
     },
     async updatePhotographer(id, fields) { const d = demoLoad(); Object.assign(d.photographers.find((p) => p.id === id), fields); demoSave(); },
@@ -115,7 +115,7 @@
     async getData() {
       const [settings, phs, photos] = await Promise.all([
         sb.from("settings").select("*").eq("id", 1).maybeSingle().then(chk),
-        sb.from("photographers").select("id,name,handle,instagram,bio,cover,sort").order("sort").then(chk),
+        sb.from("photographers").select("id,name,handle,instagram,bio,cover,sort,contact_email").order("sort").then(chk),
         sb.from("photos").select("id,photographer_id,url,path,artist,place,featured,sort,created_at").order("sort").order("created_at", { ascending: false }).then(chk)
       ]);
       // emails propriétaires : seulement si l'utilisateur connecté est admin (sinon liste vide)
@@ -125,7 +125,7 @@
       return {
         media: settings ? { name: settings.name, tagline: settings.tagline, instagram: settings.instagram, tiktok: settings.tiktok || "", email: settings.email } : SEED.media,
         photographers: phs.map((p) => ({
-          id: p.id, name: p.name, handle: p.handle || "", instagram: p.instagram || "", bio: p.bio || "", ownerEmail: ownerOf[p.id] || "", sort: p.sort, cover: p.cover || "",
+          id: p.id, name: p.name, handle: p.handle || "", instagram: p.instagram || "", bio: p.bio || "", contactEmail: p.contact_email || "", ownerEmail: ownerOf[p.id] || "", sort: p.sort, cover: p.cover || "",
           photos: photos.filter((x) => x.photographer_id === p.id).map((x) => ({ id: x.id, src: x.url, path: x.path, artist: x.artist || "", place: x.place || "", sort: x.sort, featured: !!x.featured, created: x.created_at }))
         }))
       };
@@ -149,15 +149,17 @@
       const existing = chk(await sb.from("photographers").select("id,sort"));
       while (existing.some((p) => p.id === id)) id += "-2";
       chk(await sb.from("photographers").insert({ id, name: f.name, handle: f.handle, instagram: f.instagram, bio: f.bio,
-        owner_email: (f.ownerEmail || "").toLowerCase() || null, sort: existing.length + 1 }));
+        contact_email: f.contactEmail || null, sort: existing.length + 1 }));
+      if (f.ownerEmail) chk(await sb.rpc("set_access", { pid: id, emails: f.ownerEmail.split(",") }));
       return id;
     },
     async updatePhotographer(id, f) {
       const row = {};
       if ("name" in f) row.name = f.name; if ("handle" in f) row.handle = f.handle; if ("instagram" in f) row.instagram = f.instagram;
       if ("bio" in f) row.bio = f.bio; if ("sort" in f) row.sort = f.sort; if ("cover" in f) row.cover = f.cover || null;
-      if ("ownerEmail" in f) row.owner_email = (f.ownerEmail || "").toLowerCase() || null;
-      chk(await sb.from("photographers").update(row).eq("id", id));
+      if ("contactEmail" in f) row.contact_email = f.contactEmail || null;
+      if (Object.keys(row).length) chk(await sb.from("photographers").update(row).eq("id", id));
+      if ("ownerEmail" in f) chk(await sb.rpc("set_access", { pid: id, emails: f.ownerEmail ? f.ownerEmail.split(",").map((x) => x.trim()) : [] }));
     },
     async deletePhotographer(id) {
       const files = chk(await sb.from("photos").select("path").eq("photographer_id", id)).map((x) => x.path).filter(Boolean);
@@ -213,6 +215,7 @@
       media: { name: clean(m.name, 40) || "SHOWMIX", tagline: clean(m.tagline, LIM.tagline), instagram: safeSocial(m.instagram), tiktok: safeSocial(m.tiktok), email: emailOk(m.email) ? String(m.email).trim() : "" },
       photographers: (d.photographers || []).filter((p) => safeId(p.id)).map((p) => ({
         ...p, name: clean(p.name, LIM.name), handle: clean(p.handle, LIM.handle), bio: cleanBio(p.bio), instagram: safeSocial(p.instagram),
+        contactEmail: emailOk(p.contactEmail) ? String(p.contactEmail).trim() : "",
         photos: (p.photos || []).map((x) => ({ ...x, src: safeImg(x.src), artist: clean(x.artist, LIM.artist), place: clean(x.place, LIM.place), featured: !!x.featured })).filter((x) => x.src)
       }))
     };
@@ -223,7 +226,13 @@
     if ("handle" in f) o.handle = clean(f.handle, LIM.handle);
     if ("bio" in f) o.bio = cleanBio(f.bio);
     if ("instagram" in f) o.instagram = socialUrl(f.instagram, "instagram.com");
-    if ("ownerEmail" in f) { o.ownerEmail = String(f.ownerEmail || "").trim().toLowerCase(); if (o.ownerEmail && !emailOk(o.ownerEmail)) throw new Error("Email du photographe invalide."); }
+    if ("ownerEmail" in f) {
+      const list = [...new Set(String(f.ownerEmail || "").toLowerCase().split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))];
+      if (list.length > 5) throw new Error("5 emails maximum par photographe.");
+      const bad = list.find((x) => !emailOk(x)); if (bad) throw new Error(`Email invalide : ${bad}`);
+      o.ownerEmail = list.join(", ");
+    }
+    if ("contactEmail" in f) { o.contactEmail = String(f.contactEmail || "").trim().toLowerCase(); if (o.contactEmail && !emailOk(o.contactEmail)) throw new Error("Email pro invalide."); }
     if ("cover" in f) o.cover = f.cover ? String(f.cover).slice(0, 80) : "";
     if ("sort" in f) o.sort = Number(f.sort) | 0;
     return o;
@@ -238,7 +247,7 @@
       if (f.email && !emailOk(f.email)) throw new Error("Email de contact invalide.");
       return impl.saveMedia({ name: clean(f.name, 40) || "SHOWMIX", tagline: clean(f.tagline, LIM.tagline), instagram: socialUrl(f.instagram, "instagram.com"), tiktok: socialUrl(f.tiktok, "tiktok.com"), email: String(f.email || "").trim() });
     },
-    createPhotographer: (f) => impl.createPhotographer(cleanProfile({ handle: "", bio: "", instagram: "", ownerEmail: "", ...f })),
+    createPhotographer: (f) => impl.createPhotographer(cleanProfile({ handle: "", bio: "", instagram: "", ownerEmail: "", contactEmail: "", ...f })),
     updatePhotographer: (id, f) => { if (!safeId(id)) throw new Error("Identifiant invalide."); return impl.updatePhotographer(id, cleanProfile(f)); },
     deletePhotographer: (id) => { if (!safeId(id)) throw new Error("Identifiant invalide."); return impl.deletePhotographer(id); },
     async addPhoto(pid, file, meta) {

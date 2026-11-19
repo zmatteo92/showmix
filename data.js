@@ -13,8 +13,8 @@ window.SHOWMIX_SEED = {
   },
   photographers: [
     {
-      id: "thomas-pan", name: "Thomas Pan", handle: "",
-      instagram: "https://instagram.com/", ownerEmail: "thomas@showmix.fr", sort: 1,
+      id: "thomas-pan", name: "Thomas Pan", handle: "@zea.raw",
+      instagram: "https://www.instagram.com/zea.raw", ownerEmail: "thomas_pan@aol.com, shotbyzea@gmail.com", contactEmail: "shotbyzea@gmail.com", sort: 1,
       bio: "Concerts, backstage et portraits. L'énergie de la scène, sans filtre.",
       photos: [
         { src: "photos/thomas-pan/01.jpg", artist: "Artiste 1", place: "Zénith, Paris", featured: true },

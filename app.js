@@ -176,7 +176,8 @@
         <h1>${esc(p.name)}</h1>
         ${p.bio ? `<p class="bio">${esc(p.bio)}</p>` : ""}
         <div class="stats"><div><b>${p.photos.length}</b>Photos</div><div><b>${keys.length}</b>Séries</div></div>
-        <div class="acts">${ig ? `<a class="btn" href="${esc(p.instagram)}" target="_blank" rel="noopener">${ICON.ig} @${esc(ig)}</a>` : ""}<button class="btn ghost" data-share="${esc(p.id)}">Partager</button></div>
+        <div class="acts">${p.contactEmail ? `<a class="btn" href="mailto:${esc(p.contactEmail)}">${ICON.mail} Contacter ${esc(p.name.split(" ")[0])}</a>` : ""}${ig ? `<a class="btn${p.contactEmail ? " ghost" : ""}" href="${esc(p.instagram)}" target="_blank" rel="noopener">${ICON.ig} @${esc(ig)}</a>` : ""}<button class="btn ghost" data-share="${esc(p.id)}">Partager</button></div>
+        ${p.contactEmail ? `<p class="pmail">${esc(p.contactEmail)} <button class="copy" data-copy="${esc(p.contactEmail)}">Copier</button></p>` : ""}
         ${keys.length > 1 ? `<div class="series-idx">${keys.map((k, j) => `<a href="#" data-goto="s${j}">${pad(j + 1)} — ${esc(k)} (${series[k].length})</a>`).join("")}</div>` : ""}
       </section>
       ${keys.length ? keys.map((k, j) => {

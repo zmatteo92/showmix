@@ -138,7 +138,8 @@
       <label class="f">Pseudo / @<input class="in" name="handle" value="${esc(p?.handle)}" placeholder="ex : @leiioxprod_"></label>
       <label class="f full">Lien Instagram<input class="in" name="instagram" value="${esc(p?.instagram)}" placeholder="https://instagram.com/..."></label>
       <label class="f full">Bio<textarea class="in" name="bio" placeholder="Une phrase sur ton style…">${esc(p?.bio)}</textarea></label>
-      ${admin ? `<label class="f full">Email du compte photographe <span style="opacity:.7">— la personne qui se connecte avec cet email pourra modifier ce portfolio</span><input class="in" type="email" name="ownerEmail" value="${esc(p?.ownerEmail)}" placeholder="photographe@email.com"></label>` : ""}`;
+      <label class="f full">Email pro (affiché publiquement sur ta page, pour être contacté)<input class="in" type="email" name="contactEmail" value="${esc(p?.contactEmail)}" placeholder="contact@email.com"></label>
+      ${admin ? `<label class="f full">Emails autorisés à modifier ce portfolio <span style="opacity:.7">— séparés par une virgule (5 max). Chacun crée son compte avec un de ces emails.</span><input class="in" type="text" name="ownerEmail" value="${esc(p?.ownerEmail)}" placeholder="email1@gmail.com, email2@aol.com" autocomplete="off"></label>` : ""}`;
   }
   function photographerForm(main, p) {
     main.innerHTML = `<h1 class="h1">Nouveau <em>photographe</em></h1><p class="lead">Il aura sa propre page portfolio sur le site.</p>

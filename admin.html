@@ -17,7 +17,11 @@ body{font-family:"Barlow",system-ui,-apple-system,sans-serif;font-size:15px}
 body::before{display:none}
 .logo{font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:13px}
 .side .tab{text-transform:none;letter-spacing:0;border-radius:10px}
-.btn{height:auto;text-transform:none;letter-spacing:0;color:var(--fg);border-color:var(--line)}
+.btn{height:auto;text-transform:none;letter-spacing:0;color:var(--fg);border-color:var(--line);background:transparent;border-radius:10px;font-family:inherit}
+.btn.sm{border-radius:8px}
+.btn.pri{background:var(--fg)}
+.btn.pri:hover{background:#ddd;border-color:#ddd}
+.btn.red{background:transparent}
 .btn:hover{background:transparent;color:var(--fg)}
 .btn.pri,.btn.pri:hover{color:#000}
 .btn.red{color:#ff6b57}
