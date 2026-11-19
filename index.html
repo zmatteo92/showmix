@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; media-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SHOWMIX — Portfolio</title>
+<meta name="description" content="SHOWMIX, le média qui capture la scène. Les portfolios de Thomas Pan, Louis Pecriaux et Gaël (Shoot G2).">
+<meta name="theme-color" content="#0a0a0a">
+<meta property="og:title" content="SHOWMIX — Portfolio">
+<meta property="og:description" content="Concerts, backstage, artistes. Les portfolios de l'équipe SHOWMIX.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#" id="brand">SHOWMIX</a>
+    <nav class="tabs" id="tabs" aria-label="Navigation"></nav>
+    <div class="nav-r" id="nav-r"></div>
+    <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="mmenu"><span>Menu</span><i></i></button>
+  </div>
+</header>
+<div class="mmenu" id="mmenu" aria-hidden="true"></div>
+
+<main id="app"></main>
+<footer class="ftr" id="ftr"></footer>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Photo en plein écran">
+  <div class="lb-top"><span id="lb-count"></span><div class="acts"><button class="lb-btn" id="lb-share">Partager</button><button class="lb-close" id="lb-close" aria-label="Fermer">Fermer ✕</button></div></div>
+  <div class="lb-stage" id="lb-stage">
+    <button class="lb-nav lb-prev" id="lb-prev" aria-label="Photo précédente">←</button>
+    <img id="lb-img" alt="">
+    <button class="lb-nav lb-next" id="lb-next" aria-label="Photo suivante">→</button>
+  </div>
+  <div class="lb-cap"><div><h4 id="lb-artist"></h4><p id="lb-place"></p></div><p id="lb-by"></p></div>
+  <div class="lb-thumbs" id="lb-thumbs"></div>
+</div>
+<div class="toast" id="toast"></div>
+<button class="totop" id="totop" aria-label="Revenir en haut">↑</button>
+
+<script src="vendor/supabase.js"></script>
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="store.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
